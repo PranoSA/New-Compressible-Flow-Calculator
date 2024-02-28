@@ -49,15 +49,8 @@ var Diffuser = /** @class */ (function () {
                 //What if we used the actual mach number to find the actual pressure?
                 //const actual_pressure = actual_mach_flow.Pressure
                 var actual_pressure = ideal_pressure;
-                console.log("actual pressure", actual_pressure);
-                console.log("Ideal Pressure", ideal_pressure);
-                console.log("ideal mach", ideal_flow.Mach);
-                console.log("actual mach", actual_mach_flow.Mach);
                 // The Mach Should Be lower, right??
                 actual_pressure_flow = Flow_1["default"].TPFromPressure(actual_mach_flow, actual_pressure);
-                return actual_pressure_flow;
-                console.log("Ideal Total PRessure", ideal_flow.TotalPressure);
-                console.log("Actual Total Pressure", actual_pressure_flow.TotalPressure);
                 // What We Actually Discovered -> We Want this to Converge onto this.area_ratio
                 actual_area_ratio = flow.Density / actual_pressure_flow.Density * flow.Velocity / actual_pressure_flow.Velocity;
                 // Now -> guess the next area ratio
