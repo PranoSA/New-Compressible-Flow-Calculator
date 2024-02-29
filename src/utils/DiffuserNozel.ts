@@ -47,7 +47,7 @@ export class Diffuser {
         do {
 
 
-            const ideal_flow = Flow.MachFromARSubsonic(flow,flow.AreaRatio2*area_ratio);
+            const ideal_flow = Flow.MachFromARSubsonic(flow,flow.AreaRatio2*area_ratio,actual_pressure_flow.Mach);
             console.log("ideal Mach", ideal_flow);
 
             const ideal_temperature = ideal_flow.Temp;
@@ -81,7 +81,7 @@ export class Diffuser {
 
             // Next Guess on Fake Area Ratio
             // It Should Get Bigger -> The Output Mach Should Get Smaller
-            area_ratio = area_ratio + (this.area_ratio-actual_area_ratio)/50;
+            area_ratio = area_ratio + (this.area_ratio-actual_area_ratio)/10;
             // If actual_area_ratio is too high, we need to decrease the fake area ratio
 
         }while(Math.abs(actual_area_ratio-this.area_ratio)>0.001)

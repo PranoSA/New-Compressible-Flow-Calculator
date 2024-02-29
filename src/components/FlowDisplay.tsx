@@ -13,7 +13,7 @@ export default function FlowDisplayChart(props: FlowEnergyChartsProps) {
 
   const transformSameValue = (value: number) => {
     //Limit to 3 decimals or NaN
-    return isNaN(value) ? 'NaN' : value.toFixed(3);
+    return isNaN(value) ? 'NaN' : value.toPrecision(4);
   };
 
   return (

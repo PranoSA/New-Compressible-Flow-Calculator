@@ -15,7 +15,26 @@ class Flow {
     //getter block
     //S=Cp​ln(T0​T​)−Rln(P0​P​)+S0​
     
+    get PressureCorrection() : number {
+        // Actual Pressure
+        const actual_pressure = this.Pressure;
 
+        // Incompressed Pressure
+        const incompressible_pressure = this.TotalPressure - this.Velocity * this.Velocity * this.Density / 2;
+
+        return actual_pressure/incompressible_pressure;
+    }
+
+    get PCorrectionFreeStream() : number {
+        // 
+        const actual_stagnation_pressure = this.TotalPressure;
+
+        //theoretical based on Bernoulli's
+        const incompressible_pressure = this.TotalPressure - this.Velocity * this.Velocity * this.Density / 2;
+
+        return actual_stagnation_pressure/incompressible_pressure;
+    }
+    get KE () : number {return this.Velocity*this.Velocity/2}
     get entropy() : number {return this.Cp*Math.log(this.Temp)-this.R*Math.log(this.Pressure)}
     get expr() : number {return (1+Math.pow(this.Mach,2)*(this.gamma-1)/2)};
     get Temp() : number {return (this.TotalTemp/this.expr)}
@@ -136,8 +155,8 @@ class Flow {
         return A6*A3/Mach;
     }
 
-    static MachFromARSubsonic = (flow:Flow, AR:number) => {
-        var Mach = .5;
+    static MachFromARSubsonic = (flow:Flow, AR:number, Mach:number=.5) => {
+        //var Mach = .5;
         while(Math.abs(AR-Flow.MachToAR(Mach, flow.gamma))>.0000005){
             Mach = Mach-.00001*(AR-Flow.MachToAR(Mach, flow.gamma))
         }

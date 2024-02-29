@@ -35,9 +35,36 @@ var Flow = /** @class */ (function () {
         this.gamma = gamma;
         this.R = R;
     }
-    Object.defineProperty(Flow.prototype, "entropy", {
+    Object.defineProperty(Flow.prototype, "PressureCorrection", {
         //getter block
         //S=Cp​ln(T0​T​)−Rln(P0​P​)+S0​
+        get: function () {
+            // Actual Pressure
+            var actual_pressure = this.Pressure;
+            // Incompressed Pressure
+            var incompressible_pressure = this.TotalPressure - this.Velocity * this.Velocity * this.Density / 2;
+            return actual_pressure / incompressible_pressure;
+        },
+        enumerable: false,
+        configurable: true
+    });
+    Object.defineProperty(Flow.prototype, "PCorrectionFreeStream", {
+        get: function () {
+            // 
+            var actual_stagnation_pressure = this.TotalPressure;
+            //theoretical based on Bernoulli's
+            var incompressible_pressure = this.TotalPressure - this.Velocity * this.Velocity * this.Density / 2;
+            return actual_stagnation_pressure / incompressible_pressure;
+        },
+        enumerable: false,
+        configurable: true
+    });
+    Object.defineProperty(Flow.prototype, "KE", {
+        get: function () { return this.Velocity * this.Velocity / 2; },
+        enumerable: false,
+        configurable: true
+    });
+    Object.defineProperty(Flow.prototype, "entropy", {
         get: function () { return this.Cp * Math.log(this.Temp) - this.R * Math.log(this.Pressure); },
         enumerable: false,
         configurable: true
@@ -177,8 +204,9 @@ var Flow = /** @class */ (function () {
         var A6 = Math.pow(A4, A5);
         return A6 * A3 / Mach;
     };
-    Flow.MachFromARSubsonic = function (flow, AR) {
-        var Mach = .5;
+    Flow.MachFromARSubsonic = function (flow, AR, Mach) {
+        if (Mach === void 0) { Mach = .5; }
+        //var Mach = .5;
         while (Math.abs(AR - Flow.MachToAR(Mach, flow.gamma)) > .0000005) {
             Mach = Mach - .00001 * (AR - Flow.MachToAR(Mach, flow.gamma));
         }

@@ -128,17 +128,17 @@ export class Compressor {
 
             //wisentropic​=cp​⋅(T2​−T1​)
 
-            const output_total_temp = flow.TotalTemp + isen_work/flow.Cp;
+            const output_total_temp_isen = flow.TotalTemp + isen_work/flow.Cp;
 
             //solve for P2/P1 using 
             //T1​T2​​=(P1​P2​​)nn−1​
 
-            const output_total_pressure = flow.TotalPressure*Math.pow(output_total_temp/flow.TotalTemp, flow.gamma/(flow.gamma-1));
+            const output_total_pressure = flow.TotalPressure*Math.pow(output_total_temp_isen/flow.TotalTemp, flow.gamma/(flow.gamma-1));
 
             // Create new flow
             new_flow.TotalPressure = output_total_pressure;
 
-            new_flow.TotalTemp = output_total_temp;
+            new_flow.TotalTemp = output_total_temp_isen;
 
             return new_flow;
 
@@ -174,39 +174,48 @@ export class Turbine {
         if(this.polyeff && this.work){
             // The Turbine Will Drive the Compressor So Usually Work Will Be Used 
 
+            //ηt = (1- (𝑟𝑝𝑡 )(𝛾−1)/𝛾* ηtp)/ (1- 1 / (𝑟𝑝𝑡 )(𝛾−1)/𝛾).
+            //new_flow.TotalTemp = Math.pow(this.pressure_ratio, (flow.gamma-1)/(flow.gamma*this.polyeff))*flow.TotalTemp;
+
+            // We Want Output Static Presssure difference todrive the compressor,right?
+
+            //or -> isentropic total temperature difference drives the compressor
+
+            const idea_output_total_temp = flow.TotalTemp-(this.work/flow.Cp);
+            //new_flow.TotalTemp = Math.pow(this.pressure_ratio, (flow.gamma-1)/(flow.gamma*this.polyeff))*flow.TotalTemp;
+
+            //Preliminary Attempt
+            
+
+
+
+            //Now Ideal Pressure Ratio
 
         }
         if(this.iseneff && this.work){
-            // This Should be Relatively Easy ->
-            //  Find how much change change in 
-
-            // Get From Work To Isentropic Pressure Ratio -> 
-
-            // Work Is Related to Isentropic Total Temperature Change 
-
-
-            // The Work Done by The Turbine is Related to the Isentropic Work
-
-            // The actual temperature change is subject to efficiency
+            // The Isentropic Efficiency of a Turbine Describes The Change in Energy of a flow 
+            // Versus the amount of energy needed to drive the turbine (Driven By Pressure Differences)
             
-            //const ideal_isen_temp_change = flow.TotalTemp * (1 - Math.pow(1/this.pressure_ratio, (flow.gamma-1)/flow.gamma));
+            // Would We Include Total Pressure in the equation ???
+            // Or Just Static Pressure - Lets Assume the Mach is Constant ??
+
+            // For Now Ignore The Effects of Mach Number
 
             const ideal_isen_temp_change = this.work/flow.Cp;
-
             const actual_isen_temp_change = ideal_isen_temp_change/this.iseneff;
-            
-            const output_total_temp = flow.TotalTemp - actual_isen_temp_change;
+            const t_output_total_temp = flow.TotalTemp - actual_isen_temp_change;
 
-            //Now Get Pressure Ratio
-            //new_flow.TotalPressure = flow.TotalPressure*Math.pow(output_total_temp/flow.TotalTemp, flow.gamma/(flow.gamma-1));
-            const change_total_pressure_ratio = Math.pow((flow.TotalTemp-ideal_isen_temp_change)/(flow.TotalTemp), flow.gamma/(flow.gamma-1));
+            //  Or assume the density is constant?
+            // The Work Done Per Unit Mass is the difference in pressure 
 
+            //Find P2/P1 based on (ideal_isen_temp_change+T1)/(T1)
+            const pressure_change_ratio = Math.pow((ideal_isen_temp_change+flow.TotalTemp)/(flow.TotalTemp), flow.gamma/(flow.gamma-1));
 
-            new_flow.TotalPressure = flow.TotalPressure*change_total_pressure_ratio;
+            const output_total_pressure = Flow.TPFromTP(flow,pressure_change_ratio)
 
+            const output_total_temp = Flow.TTFromTT(output_total_pressure, t_output_total_temp);
 
-            new_flow.TotalTemp = output_total_temp;
-
+            return output_total_temp;
 
         }
         return Flow.NewFlow()

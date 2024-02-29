@@ -55,7 +55,7 @@ const Home = () => {
       const inputEnergy = [
         flow.TotalTemp * flow.Cv,
         (flow.TotalPressure / flow.Density) * flow.DensityRatio,
-        flow.Enthalpy * 1000,
+        flow.Enthalpy,
         0.5 * flow.Velocity ** 2,
         flow.Pressure / flow.Density,
         flow.Temp * flow.Cv,
