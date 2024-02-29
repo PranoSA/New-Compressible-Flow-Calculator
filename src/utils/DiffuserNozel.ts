@@ -44,6 +44,7 @@ export class Diffuser {
         //What We Return
         let actual_pressure_flow = flow;
 
+        do {
 
 
             const ideal_flow = Flow.MachFromARSubsonic(flow,flow.AreaRatio2*area_ratio);
@@ -66,17 +67,28 @@ export class Diffuser {
             //const actual_pressure = actual_mach_flow.Pressure
             const actual_pressure = ideal_pressure;
 
-
             // The Mach Should Be lower, right??
             
 
             actual_pressure_flow = Flow.TPFromPressure(actual_mach_flow,actual_pressure);
 
-            console.log("Actual Mass FLow", actual_pressure_flow.Density*actual_pressure_flow.Velocity*this.area_ratio);
-            console.log("Input Mass Flow", flow.Density*flow.Velocity);
 
-            return actual_pressure_flow;
+            // What We Actually Discovered -> We Want this to Converge onto this.area_ratio
+            actual_area_ratio = flow.Density / actual_pressure_flow.Density * flow.Velocity / actual_pressure_flow.Velocity;
 
+            // Now -> guess the next area ratio
+            console.log("Actual Area Ratio", actual_area_ratio);
+
+            // Next Guess on Fake Area Ratio
+            // It Should Get Bigger -> The Output Mach Should Get Smaller
+            area_ratio = area_ratio + (this.area_ratio-actual_area_ratio)/50;
+            // If actual_area_ratio is too high, we need to decrease the fake area ratio
+
+        }while(Math.abs(actual_area_ratio-this.area_ratio)>0.001)
+
+        console.log("Affective Area Ratio", area_ratio);
+
+        return actual_pressure_flow;
 
     }
 
