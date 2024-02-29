@@ -7,11 +7,14 @@ class Flow {
 
     static EntropyDifference = (flow1:Flow, flow2:Flow) => {
         // The Entropy Difference between 1 and 2 [Going From State 2 to 1]
+
+        // Negative if 1 has more entropy than 2
         return flow1.Cp*Math.log(flow1.Temp/flow2.Temp)-flow1.R*Math.log(flow1.Pressure/flow2.Pressure);
     }
 
     //getter block
     //S=Cp​ln(T0​T​)−Rln(P0​P​)+S0​
+    
 
     get entropy() : number {return this.Cp*Math.log(this.Temp)-this.R*Math.log(this.Pressure)}
     get expr() : number {return (1+Math.pow(this.Mach,2)*(this.gamma-1)/2)};
@@ -55,6 +58,45 @@ class Flow {
     //Mach Changers
     //From Mach
     static MachFromMach = (flow : Flow, Mach : number) => new Flow(Mach, flow.TotalTemp, flow.TotalPressure, flow.gamma, flow.R);
+
+    // Maximum Output Work Done By Flow 
+    expansionToPressurePE = (Pressure:number):number => {
+
+        //p​⋅T0,1​⋅(1−(P1​P2​​)γγ−1​)
+        //Wmax​=Cp​⋅T0,1​⋅(1−(P1​P2​​)γγ−1​)
+        //Essentailly -> 
+        return this.Cp*this.TotalTemp*(1-Math.pow(Pressure/this.TotalPressure,(this.gamma-1)/ this.gamma));
+    }
+
+    expansionToDensityVolume = (Volume:number):number => {
+
+        // Density is inverse
+        const density= 1/Volume;
+
+        // Expand to Density Ratio of density/Stagntation Density 
+        const reference_density_flow = Flow.MachFromDR(this, 0);
+
+        // Density Ratio Would be d/d0 ??
+        const density_ratio = density/reference_density_flow.Density;
+
+        const density_flow = Flow.MachFromDR(this, density_ratio);
+
+        return this.Cp*(this.Temp - density_flow.Temp) //Isentropic
+
+    }
+
+    //
+    expansionToKineticPE = (OutputPressure:number):number => {
+
+        //This Would Be THe Most Kinetic Energy You Can Get Out oF Expanding The Flow
+        //const newFlow = Flow.TPFromPressure(this, OutputPressure);
+        const newFlow = Flow.MachFromPR(this, OutputPressure/this.TotalPressure);
+
+        const kineticEnergy = newFlow.Velocity*newFlow.Velocity/2;
+
+        return kineticEnergy;
+    }
+
     //From Pressure Ratio
     static MachFromPR = (flow : Flow, PR:number) => {
         //console.log(Math.asin(1));
@@ -96,8 +138,8 @@ class Flow {
 
     static MachFromARSubsonic = (flow:Flow, AR:number) => {
         var Mach = .5;
-        while(Math.abs(AR-Flow.MachToAR(Mach, flow.gamma))>.00005){
-            Mach = Mach-.001*(AR-Flow.MachToAR(Mach, flow.gamma))
+        while(Math.abs(AR-Flow.MachToAR(Mach, flow.gamma))>.0000005){
+            Mach = Mach-.00001*(AR-Flow.MachToAR(Mach, flow.gamma))
         }
         return new Flow(Mach, flow.TotalTemp, flow.TotalPressure, flow.gamma, flow.R);
     }

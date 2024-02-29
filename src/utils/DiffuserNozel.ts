@@ -72,6 +72,9 @@ export class Diffuser {
 
             actual_pressure_flow = Flow.TPFromPressure(actual_mach_flow,actual_pressure);
 
+            console.log("Actual Mass FLow", actual_pressure_flow.Density*actual_pressure_flow.Velocity*this.area_ratio);
+            console.log("Input Mass Flow", flow.Density*flow.Velocity);
+
             return actual_pressure_flow;
 
 
