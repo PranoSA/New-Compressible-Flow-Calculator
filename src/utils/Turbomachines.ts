@@ -59,6 +59,7 @@ export class Compressor {
             //
             new_flow.TotalTemp = Math.pow(this.pressure_ratio, (flow.gamma-1)/(flow.gamma*this.polyeff))*flow.TotalTemp;
             //new_flow.TotalTemp = this.pressure_ratio*(Math.pow(flow.TotalTemp, (flow.gamma-1)/flow.gamma));
+            new_flow.TotalPressure = flow.TotalPressure*this.pressure_ratio;
 
             return new_flow;
 
@@ -181,15 +182,33 @@ export class Turbine {
 
             //or -> isentropic total temperature difference drives the compressor
 
-            const idea_output_total_temp = flow.TotalTemp-(this.work/flow.Cp);
+            
             //new_flow.TotalTemp = Math.pow(this.pressure_ratio, (flow.gamma-1)/(flow.gamma*this.polyeff))*flow.TotalTemp;
 
+            // Find Pressure Ratio Based on Work 
+            const ideal_temp_change = this.work/flow.Cp;
+
+            // Ideal Pressure Flow 
+            const ideal_pressure_ratio = Math.pow((flow.TotalTemp)/(flow.TotalTemp-ideal_temp_change), flow.gamma/(flow.gamma-1));
+            console.log("Ideal Pressure Ratio", ideal_pressure_ratio)
+
+          //  const actual_output_temp = Math.pow(1/ideal_pressure_ratio, (flow.gamma-1)/(flow.gamma*this.polyeff))*flow.TotalTemp;
+           // const actual_output_temp = Math.pow(1/ideal_pressure_ratio, this.polyeff*(flow.gamma-1)/flow.gamma)*flow.TotalTemp;
             //Preliminary Attempt
+
+            //const pressure_change_ratio = Math.pow((ideal_isen_temp_change+flow.TotalTemp)/(flow.TotalTemp), flow.gamma/(flow.gamma-1));
+
+           //const actual_output_temp = flow.TotalTemp-flow.TotalTemp * (1-Math.pow(1/ideal_pressure_ratio,(flow.gamma-1)/(flow.gamma*this.polyeff)))/this.polyeff
+            const actual_output_temp = flow.TotalTemp
+           //const actual_output_temp = (flow.TotalTemp-ideal_temp_change)*Math.pow(ideal_pressure_ratio, this.polyeff*(flow.gamma-1)/flow.gamma)-(ideal_temp_change)
+           
+
+            const actual_pressure_flow = Flow.TPFromTP(flow, flow.TotalPressure/ideal_pressure_ratio);
+
+            const actual_temp_flow = Flow.TTFromTT(actual_pressure_flow, actual_output_temp);
+
+            return actual_temp_flow;
             
-
-
-
-            //Now Ideal Pressure Ratio
 
         }
         if(this.iseneff && this.work){
@@ -205,13 +224,20 @@ export class Turbine {
             const actual_isen_temp_change = ideal_isen_temp_change/this.iseneff;
             const t_output_total_temp = flow.TotalTemp - actual_isen_temp_change;
 
+            if(t_output_total_temp < 0){
+                throw new Error("Negative Temperature")
+            }
+
             //  Or assume the density is constant?
             // The Work Done Per Unit Mass is the difference in pressure 
 
             //Find P2/P1 based on (ideal_isen_temp_change+T1)/(T1)
-            const pressure_change_ratio = Math.pow((ideal_isen_temp_change+flow.TotalTemp)/(flow.TotalTemp), flow.gamma/(flow.gamma-1));
+          //  const pressure_change_ratio = Math.pow((ideal_isen_temp_change+flow.TotalTemp)/(flow.TotalTemp), flow.gamma/(flow.gamma-1));
+            const pressure_change_ratio =  Math.pow((flow.TotalTemp)/(flow.TotalTemp-ideal_isen_temp_change), flow.gamma/(flow.gamma-1));
+          console.log("Pressure Change Ratio", pressure_change_ratio)
 
-            const output_total_pressure = Flow.TPFromTP(flow,pressure_change_ratio)
+            const output_total_pressure = Flow.TPFromTP(flow,flow.TotalPressure/pressure_change_ratio)
+            
 
             const output_total_temp = Flow.TTFromTT(output_total_pressure, t_output_total_temp);
 
